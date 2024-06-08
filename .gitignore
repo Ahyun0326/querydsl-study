@@ -20,8 +20,10 @@ bin/
 ### mac OS ###
 # General
 .DS_Store
-.AppleDouble
-.LSOverride
+._.DS_Store
+**/.DS_Store
+**/._.DS_Store
+
 
 ### IntelliJ IDEA ###
 .idea
