@@ -6,15 +6,18 @@ import static study.querydsl.entity.QTeam.team;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import study.querydsl.dto.MemberSearchCond;
 import study.querydsl.dto.MemberTeamDto;
 import study.querydsl.dto.QMemberTeamDto;
+import study.querydsl.entity.Member;
 
 public class MemberRepositoryImpl implements MemberRepositoryCustom {
 
@@ -68,8 +71,22 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         .fetch();
 
     // count 쿼리 (조건에 부합하는 로우의 총 개수를 얻는 것이기 때문에 페이징 미적용)
-    Long total = queryFactory
-        .select(member.count()) // SQL 상으로는 count(member.id)와 동일
+//    Long total = queryFactory
+//        .select(member.count()) // SQL 상으로는 count(member.id)와 동일
+//        .from(member)
+//        .leftJoin(member.team, team)
+//        .where(
+//            usernameEq(condition.getUsername()),
+//            teamNameEq(condition.getTeamName()),
+//            ageGoeEq(condition.getAgeGoe()),
+//            ageLoeEq(condition.getAgeLoe())
+//        )
+//        .fetchOne();
+
+//    return new PageImpl<>(content, pageable, total);
+
+    JPAQuery<Long> countQuery = queryFactory
+        .select(member.count())
         .from(member)
         .leftJoin(member.team, team)
         .where(
@@ -77,10 +94,10 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
             teamNameEq(condition.getTeamName()),
             ageGoeEq(condition.getAgeGoe()),
             ageLoeEq(condition.getAgeLoe())
-        )
-        .fetchOne();
+        );
 
-    return new PageImpl<>(content, pageable, total);
+    return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+
   }
 
   private BooleanExpression usernameEq(String username) {
